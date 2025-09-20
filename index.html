@@ -1,123 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
   <title>SkillBridge AI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body>
+  <h2>SkillBridge AI</h2>
+  <textarea id="userInput" placeholder="Enter your skills or career interest"></textarea>
+  <br><br>
+  <button onclick="getRecommendation()">Get Career Advice</button>
+  <button onclick="saveResult()">💾 Save</button>
+  <button onclick="getHistory()">📜 History</button>
+  <button onclick="exportPDF()">⬇️ Export PDF</button>
 
-  <!-- Header Branding -->
-  <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-50 p-4 flex flex-col items-center">
-    <img src="logo.png" alt="SkillBridge AI Logo" class="h-14 mb-2">
-    <img src="muthuvel.jpg" alt="Muthuvel C" class="h-16 w-16 rounded-full border-2 border-indigo-600 mb-2">
-    <h2 class="text-xl font-bold text-gray-800">SkillBridge AI</h2>
-    <p class="text-sm text-gray-600">By <span class="font-semibold">Muthuvel C</span></p>
-  </header>
-  <div class="mt-44"></div>
+  <h3>Result:</h3>
+  <pre id="result"></pre>
 
-  <!-- Main Content -->
-  <main class="max-w-3xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center text-indigo-700">Career & Skills Advisor</h1>
-
-    <!-- Input Form -->
-    <section class="bg-white shadow rounded-lg p-6 space-y-4">
-      <label class="block">
-        <span class="text-sm font-medium text-gray-700">Enter your skills or career interest</span>
-        <input id="userInput" type="text" placeholder="e.g. Mechanical Engineering, CAD, EVs"
-          class="mt-1 w-full p-2 border rounded-md focus:ring focus:ring-indigo-300" />
-      </label>
-      <button onclick="getRecommendation()"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow">
-        Get Career Advice
-      </button>
-    </section>
-
-    <!-- Output Section -->
-    <section id="output" class="mt-6 p-6 bg-gray-100 rounded-lg shadow hidden"></section>
-
-    <!-- Action Buttons -->
-    <div id="actions" class="hidden mt-4 flex space-x-4">
-      <button onclick="saveData()"
-        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">💾 Save</button>
-      <button onclick="getHistory()"
-        class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg shadow">📜 History</button>
-      <button onclick="exportPDF()"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">⬇️ Export PDF</button>
-    </div>
-
-    <!-- History Section -->
-    <section id="history" class="mt-6 hidden">
-      <h2 class="text-xl font-bold mb-2 text-indigo-700">Your Saved History</h2>
-      <ul id="historyList" class="list-disc pl-6 text-gray-700"></ul>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-inner p-4 flex flex-col items-center text-sm text-gray-600">
-    <p>📧 <a href="mailto:cmuthuvel2005@gmail.com" class="text-indigo-600 hover:underline">cmuthuvel2005@gmail.com</a></p>
-    <p>🔗 <a href="https://www.linkedin.com/in/muthuvel-c-b51b9433b" target="_blank" class="text-indigo-600 hover:underline">LinkedIn Profile</a></p>
-    <p>☁️ Powered by Google Cloud AI</p>
-  </footer>
-
-  <!-- JS Logic -->
   <script>
-    // 🔗 Backend URL
     const API_BASE = "https://skillbridge-backend-5.onrender.com";
 
+    // ✅ FIXED version
     async function getRecommendation() {
       const input = document.getElementById("userInput").value;
-      if (!input) return alert("Please enter your skills or career interest!");
-
       const res = await fetch(`${API_BASE}/api/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input })
+        body: JSON.stringify({ skills: input })  // <-- FIXED (was input before)
       });
       const data = await res.json();
-      const output = document.getElementById("output");
-      output.innerText = data.recommendations || "No result";
-      output.classList.remove("hidden");
-      document.getElementById("actions").classList.remove("hidden");
+      document.getElementById("result").textContent = data.recommendation || data.error;
     }
 
-    async function saveData() {
-      const content = document.getElementById("output").innerText;
+    async function saveResult() {
+      const content = document.getElementById("result").textContent;
+      if (!content) {
+        alert("No result to save!");
+        return;
+      }
       const res = await fetch(`${API_BASE}/api/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content })
       });
       const data = await res.json();
-      alert(data.status === "saved" ? "✅ Saved!" : "❌ Save failed");
+      alert("Saved ✅ Doc ID: " + (data.doc_id || "error"));
     }
 
     async function getHistory() {
       const res = await fetch(`${API_BASE}/api/history`);
       const data = await res.json();
-      const historyList = document.getElementById("historyList");
-      historyList.innerHTML = "";
-      (data || []).forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item.content || JSON.stringify(item);
-        historyList.appendChild(li);
-      });
-      document.getElementById("history").classList.remove("hidden");
+      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
     }
 
     async function exportPDF() {
-      const content = document.getElementById("output").innerText;
+      const content = document.getElementById("result").textContent;
+      if (!content) {
+        alert("No result to export!");
+        return;
+      }
       const res = await fetch(`${API_BASE}/api/export_pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content })
       });
-      const blob = await res.blob();
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = "SkillBridge_Report.pdf";
-      link.click();
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "SkillBridge_Report.pdf";
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert("❌ Failed to export PDF");
+      }
     }
   </script>
 </body>
