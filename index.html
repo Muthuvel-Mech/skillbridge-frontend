@@ -1,20 +1,115 @@
 <!DOCTYPE html>
-<html lang="ta">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>SkillBridge AI</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef2f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      margin: 30px 15px;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    header {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2b4eff;
+      margin-bottom: 15px;
+    }
+    textarea {
+      width: 100%;
+      height: 90px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
+      margin: 15px 0;
+      resize: none;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    button {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    .btn-primary { background: #2b4eff; }
+    .btn-save { background: #28a745; }
+    .btn-history { background: #ff9800; }
+    .btn-export { background: #2196f3; }
+    pre {
+      text-align: left;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      min-height: 60px;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 1px solid #ddd;
+    }
+    footer {
+      margin-top: 15px;
+      font-size: 13px;
+      color: gray;
+    }
+  </style>
 </head>
 <body>
-  <h2>SkillBridge AI</h2>
-  <textarea id="userInput" placeholder="உங்க skills அல்லது career interest எழுதுங்க"></textarea>
-  <br><br>
-  <button onclick="getRecommendation()">Career Advice வாங்க</button>
-  <button onclick="saveResult()">💾 Save</button>
-  <button onclick="getHistory()">📜 History</button>
-  <button onclick="exportPDF()">⬇️ PDF Export</button>
+  <div class="card">
+    <header>⚙️ SkillBridge AI</header>
 
-  <h3>Result:</h3>
-  <pre id="result"></pre>
+    <h3>Enter Your Skills or Career Interests</h3>
+    <textarea id="userInput" placeholder="e.g., Mechanical engineering, CAD"></textarea>
+    
+    <div class="btn-group">
+      <button class="btn-primary" onclick="getRecommendation()">🔍 Get Advice</button>
+      <button class="btn-save" onclick="saveResult()">💾 Save</button>
+      <button class="btn-history" onclick="getHistory()">📜 History</button>
+      <button class="btn-export" onclick="exportPDF()">⬇️ Export PDF</button>
+    </div>
+
+    <h3>Result:</h3>
+    <pre id="result">⚡ Your result will appear here...</pre>
+
+    <footer>
+      Powered by Google Cloud AI | Created by Muthuvel C
+    </footer>
+  </div>
 
   <script>
     const API_BASE = "https://skillbridge-backend-5.onrender.com";
@@ -22,7 +117,7 @@
     async function getRecommendation() {
       const input = document.getElementById("userInput").value.trim();
       if (!input) {
-        document.getElementById("result").textContent = "❌ Input கொடுக்கல.";
+        document.getElementById("result").textContent = "❌ Please enter some input.";
         return;
       }
 
@@ -33,17 +128,14 @@
       });
 
       const data = await res.json();
-      console.log("API Response:", data); // Debug பார்க்க
-
-      // backend என்ன தருதோ அதையே காட்டும்
       document.getElementById("result").textContent =
-        data.recommendation || data.message || data.error || "⚠️ Result இல்லை";
+        data.recommendation || data.message || data.error || "⚠️ No result found.";
     }
 
     async function saveResult() {
       const content = document.getElementById("result").textContent;
       if (!content) {
-        alert("Save செய்ய result இல்லை!");
+        alert("No result to save!");
         return;
       }
       const res = await fetch(`${API_BASE}/api/save`, {
@@ -64,7 +156,7 @@
     async function exportPDF() {
       const content = document.getElementById("result").textContent;
       if (!content) {
-        alert("PDF export செய்ய result இல்லை!");
+        alert("No result to export!");
         return;
       }
       const res = await fetch(`${API_BASE}/api/export_pdf`, {
@@ -81,7 +173,7 @@
         a.click();
         window.URL.revokeObjectURL(url);
       } else {
-        alert("❌ PDF Export fail ஆயிடுச்சு");
+        alert("❌ PDF Export failed.");
       }
     }
   </script>
