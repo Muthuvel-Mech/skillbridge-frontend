@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,7 +80,7 @@
 
   <script>
     const HF_API = "https://api-inference.huggingface.co/models/google/flan-t5-base";
-    const HF_TOKEN = "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"; // ✅ Your token here
+    const HF_TOKEN = "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"; // ✅ Your token
 
     async function getAdvice() {
       const input = document.getElementById("skills").value.trim();
@@ -104,11 +103,15 @@
           }),
         });
 
-        const result = await response.json();
-        console.log(result);
+        const data = await response.json();
+        console.log("HF Response:", data); // Debugging
 
         document.getElementById("result").innerText =
-          result[0]?.generated_text || "⚠️ No response, try again!";
+          data[0]?.generated_text ||   // Case: Array output
+          data.generated_text ||       // Case: Object output
+          data.error ||                // Case: Error message
+          JSON.stringify(data, null, 2) || // Fallback raw JSON
+          "⚠️ No response!";
       } catch (error) {
         document.getElementById("result").innerText =
           "❌ Error fetching response: " + error.message;
