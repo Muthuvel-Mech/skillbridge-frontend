@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta">
 <head>
   <meta charset="UTF-8">
   <title>SkillBridge AI</title>
 </head>
 <body>
   <h2>SkillBridge AI</h2>
-  <textarea id="userInput" placeholder="Enter your skills or career interest"></textarea>
+  <textarea id="userInput" placeholder="உங்க skills அல்லது career interest எழுதுங்க"></textarea>
   <br><br>
-  <button onclick="getRecommendation()">Get Career Advice</button>
+  <button onclick="getRecommendation()">Career Advice வாங்க</button>
   <button onclick="saveResult()">💾 Save</button>
   <button onclick="getHistory()">📜 History</button>
-  <button onclick="exportPDF()">⬇️ Export PDF</button>
+  <button onclick="exportPDF()">⬇️ PDF Export</button>
 
   <h3>Result:</h3>
   <pre id="result"></pre>
@@ -19,22 +19,31 @@
   <script>
     const API_BASE = "https://skillbridge-backend-5.onrender.com";
 
-    // ✅ FIXED version
     async function getRecommendation() {
-      const input = document.getElementById("userInput").value;
+      const input = document.getElementById("userInput").value.trim();
+      if (!input) {
+        document.getElementById("result").textContent = "❌ Input கொடுக்கல.";
+        return;
+      }
+
       const res = await fetch(`${API_BASE}/api/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skills: input })  // <-- FIXED (was input before)
+        body: JSON.stringify({ skills: input })
       });
+
       const data = await res.json();
-      document.getElementById("result").textContent = data.recommendation || data.error;
+      console.log("API Response:", data); // Debug பார்க்க
+
+      // backend என்ன தருதோ அதையே காட்டும்
+      document.getElementById("result").textContent =
+        data.recommendation || data.message || data.error || "⚠️ Result இல்லை";
     }
 
     async function saveResult() {
       const content = document.getElementById("result").textContent;
       if (!content) {
-        alert("No result to save!");
+        alert("Save செய்ய result இல்லை!");
         return;
       }
       const res = await fetch(`${API_BASE}/api/save`, {
@@ -43,7 +52,7 @@
         body: JSON.stringify({ content })
       });
       const data = await res.json();
-      alert("Saved ✅ Doc ID: " + (data.doc_id || "error"));
+      alert("✅ Saved! Doc ID: " + (data.doc_id || "error"));
     }
 
     async function getHistory() {
@@ -55,7 +64,7 @@
     async function exportPDF() {
       const content = document.getElementById("result").textContent;
       if (!content) {
-        alert("No result to export!");
+        alert("PDF export செய்ய result இல்லை!");
         return;
       }
       const res = await fetch(`${API_BASE}/api/export_pdf`, {
@@ -72,7 +81,7 @@
         a.click();
         window.URL.revokeObjectURL(url);
       } else {
-        alert("❌ Failed to export PDF");
+        alert("❌ PDF Export fail ஆயிடுச்சு");
       }
     }
   </script>
